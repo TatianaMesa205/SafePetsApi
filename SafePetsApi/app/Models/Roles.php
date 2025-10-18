@@ -14,8 +14,8 @@ class Roles extends Model
     ];
 
     // Relación de un rol con muchos usuarios
-    public function usuarios()
+    public function usuario()
     {
-        return $this->hasMany(User::class, 'id_roles', 'id_roles');
+        return $this->hasMany(Usuarios::class, 'id_roles', 'id_roles');
     }
 }

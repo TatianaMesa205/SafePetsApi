@@ -7,7 +7,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+class Usuarios extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
@@ -34,7 +34,7 @@ class User extends Authenticatable
         ];
     }
 
-    public function roles()
+    public function rol()
     {
         return $this->belongsTo(Roles::class, 'id_roles', 'id_roles');
     }
