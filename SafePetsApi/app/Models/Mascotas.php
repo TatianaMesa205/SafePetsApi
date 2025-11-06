@@ -32,7 +32,7 @@ class Mascotas extends Model
     }
 
     public function vacunam(){
-        return $this->hasOne(Vacunam::class, '', '');
+        return $this->hasOne(VacunasMascotas::class, 'id_vacunas_mascotas', 'id_vacunas_mascotas');
     }
     
 }

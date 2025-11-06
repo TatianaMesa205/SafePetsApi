@@ -12,12 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('vacunas_mascotas', function (Blueprint $table) {
+            $table->id('id_vacunas_mascotas');
             $table->unsignedBigInteger('id_mascotas');
             $table->unsignedBigInteger('id_vacunas');
             $table->date('fecha_aplicacion');
-            $table->date('proxima_dosis');
-            $table->primary(['id_mascotas', 'id_vacunas']);
+            $table->date('proxima_dosis')->nullable();
 
+            // Relaciones
             $table->foreign('id_mascotas')->references('id_mascotas')->on('mascotas')->onDelete('cascade');
             $table->foreign('id_vacunas')->references('id_vacunas')->on('vacunas')->onDelete('cascade');
         });

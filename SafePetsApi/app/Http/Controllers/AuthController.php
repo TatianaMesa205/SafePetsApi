@@ -5,78 +5,99 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-use App\Models\User;
-use \stdClass;
+use App\Models\Usuarios;
 use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
-    public function registrar(Request $request){
-
+    // ✅ Registro de usuario
+    public function registrar(Request $request)
+    {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
+            'nombre_usuario' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:usuarios',
             'password' => 'required|string|min:8',
-            'role' => 'required',
-
+            'id_roles' => 'required|in:1,2', // solo se aceptan roles válidos (admin/adoptante)
         ]);
+
         if ($validator->fails()) {
             return response()->json([
                 'errors' => $validator->errors()
             ], 422);
         }
 
-        $user = User::create([
-            'name' => $request->name,
+        // Crear el usuario
+        $usuario = Usuarios::create([
+            'nombre_usuario' => $request->nombre_usuario,
             'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => $request->role,
+            'contrasena' => Hash::make($request->password),
+            'id_roles' => $request->id_roles,
         ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        // Crear el token
+        $token = $usuario->createToken('auth_token')->plainTextToken;
+
+        // Asignar nombre del rol
+        $rol = $usuario->id_roles == 1 ? 'admin' : 'adoptante';
 
         return response()->json([
-            'name' => $user->name,
-            'email' => $user->email,
-            'role' => $user->role,
-            'created_at' => $user->created_at,
-            'updated_at' => $user->updated_at,  
+            'nombre_usuario' => $usuario->nombre_usuario,
+            'email' => $usuario->email,
+            'rol' => $rol,
+            'created_at' => $usuario->created_at,
             'token' => $token,
             'token_type' => 'Bearer'
         ], 201);
     }
 
-    public function login(Request $request){
+    // ✅ Inicio de sesión
+    public function login(Request $request)
+    {
+        $credentials = [
+            'email' => $request->email,
+            'password' => $request->password
+        ];
 
-        if (!Auth::attempt($request->only('email', 'password'))) {
-            return response()->json(['message' => 'Unauthorized'], 401);
+        if (!Auth::attempt($credentials)) {
+            return response()->json(['message' => 'Credenciales incorrectas'], 401);
         }
 
-        $user = User::where('email', $request['email'])->firstOrFail();
+        $usuario = Usuarios::where('email', $request->email)->firstOrFail();
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $token = $usuario->createToken('auth_token')->plainTextToken;
+
+        $rol = $usuario->id_roles == 1 ? 'admin' : 'adoptante';
 
         return response()->json([
-            'message' => 'Hi ' . $user->name,
+            'message' => 'Bienvenido ' . $usuario->nombre_usuario,
+            'rol' => $rol,
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'user' => $user
+            'usuario' => $usuario
         ]);
     }
 
-    public function logout(Request $request){
+    // ✅ Cierre de sesión
+    public function logout(Request $request)
+    {
         auth()->user()->tokens()->delete();
 
-        return [
-            'message' => 'You have successfully logged out and the token was successfully deleted'
-        ];
+        return response()->json([
+            'message' => 'Has cerrado sesión correctamente y el token fue eliminado'
+        ]);
     }
 
+    // ✅ Información del usuario autenticado
     public function me(Request $request)
     {
+        $usuario = Auth::user();
+
+        $rol = $usuario->id_roles == 1 ? 'admin' : 'adoptante';
+
         return response()->json([
             'success' => true,
-            'user' => Auth::user(), // el usuario autenticado
+            'usuario' => $usuario,
+            'rol' => $rol
         ], 200);
     }
 }

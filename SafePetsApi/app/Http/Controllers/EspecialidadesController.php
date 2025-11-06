@@ -59,6 +59,7 @@ class EspecialidadesController extends Controller
 
 
     public function destroy(string $id){
+        
         $especialidad = Especialidades::find($id);
 
         if (!$especialidad) {

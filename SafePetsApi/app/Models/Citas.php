@@ -6,22 +6,25 @@ use Illuminate\Database\Eloquent\Model;
 
 class Citas extends Model
 {
-     protected $fillable = [
-        'id_pacientes',
-        'id_medicos',
-        'id_consultorios',
-        'fecha',
-        'hora',
-        'estado', // Por ejemplo: 'pendiente', 'confirmada', 'cancelada'
+    protected $table = 'citas';
+    protected $primaryKey = 'id_citas';
+
+    protected $fillable = [
+        'id_adoptantes',
+        'id_mascotas',
+        'fecha_cita',
+        'estado',
         'motivo',
     ];
-    public function paciente(){
-        return $this->belongsTo(Pacientes::class, 'id_pacientes', 'id'); // belongsTo significa de muchos a uno
+
+    // Relaciones
+    public function adoptante()
+    {
+        return $this->belongsTo(Adoptantes::class, 'id_adoptantes', 'id_adoptantes');
     }
-    public function medico(){
-        return $this->belongsTo(Medicos::class, 'id_medicos', 'id'); // belongsTo significa de muchos a uno
-    }
-    public function consultorio(){
-        return $this->belongsTo(Consultorios::class, 'id_consultorios', 'id'); // belongsTo significa de muchos a uno
+
+    public function mascota()
+    {
+        return $this->belongsTo(Mascotas::class, 'id_mascotas', 'id_mascotas');
     }
 }
