@@ -13,15 +13,17 @@ class AuthController extends Controller
     // ✅ Registro de usuario
     public function registrar(Request $request)
     {
+        // Validar los campos
         $validator = Validator::make($request->all(), [
             'nombre_usuario' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:usuarios',
-            'password' => 'required|string|min:8',
-            'id_roles' => 'required|in:1,2', // solo se aceptan roles válidos (admin/adoptante)
+            'password' => 'required|string|min:6',
+            'id_roles' => 'required|integer'
         ]);
 
         if ($validator->fails()) {
             return response()->json([
+                'message' => 'Error de validación',
                 'errors' => $validator->errors()
             ], 422);
         }
@@ -30,44 +32,50 @@ class AuthController extends Controller
         $usuario = Usuarios::create([
             'nombre_usuario' => $request->nombre_usuario,
             'email' => $request->email,
-            'contrasena' => Hash::make($request->password),
-            'id_roles' => $request->id_roles,
+            'contrasena' => Hash::make($request->password), // 🔒 Encripta la contraseña
+            'id_roles' => $request->id_roles
         ]);
 
-        // Crear el token
+        // Crear token
         $token = $usuario->createToken('auth_token')->plainTextToken;
 
-        // Asignar nombre del rol
+        // Determinar rol
         $rol = $usuario->id_roles == 1 ? 'admin' : 'adoptante';
 
+        // Respuesta
         return response()->json([
-            'nombre_usuario' => $usuario->nombre_usuario,
-            'email' => $usuario->email,
+            'message' => 'Usuario registrado exitosamente',
             'rol' => $rol,
-            'created_at' => $usuario->created_at,
-            'token' => $token,
-            'token_type' => 'Bearer'
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+            'usuario' => $usuario
         ], 201);
     }
 
     // ✅ Inicio de sesión
     public function login(Request $request)
     {
-        $credentials = [
-            'email' => $request->email,
-            'password' => $request->password
-        ];
+        // Validar campos obligatorios
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|string',
+        ]);
 
-        if (!Auth::attempt($credentials)) {
+        // Buscar usuario por email
+        $usuario = Usuarios::where('email', $request->email)->first();
+
+        // Verificar si existe y si la contraseña es correcta
+        if (!$usuario || !Hash::check($request->password, $usuario->contrasena)) {
             return response()->json(['message' => 'Credenciales incorrectas'], 401);
         }
 
-        $usuario = Usuarios::where('email', $request->email)->firstOrFail();
-
+        // Crear token de acceso
         $token = $usuario->createToken('auth_token')->plainTextToken;
 
+        // Determinar rol
         $rol = $usuario->id_roles == 1 ? 'admin' : 'adoptante';
 
+        // Respuesta con datos
         return response()->json([
             'message' => 'Bienvenido ' . $usuario->nombre_usuario,
             'rol' => $rol,
@@ -76,6 +84,7 @@ class AuthController extends Controller
             'usuario' => $usuario
         ]);
     }
+
 
     // ✅ Cierre de sesión
     public function logout(Request $request)

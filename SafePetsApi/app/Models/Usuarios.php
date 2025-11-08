@@ -11,27 +11,33 @@ class Usuarios extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-
     protected $table = 'usuarios';
     protected $primaryKey = 'id_usuarios';
 
     protected $fillable = [
         'nombre_usuario',
         'email',
-        'contraseña',
+        'contrasena',
         'id_roles',
     ];
 
     protected $hidden = [
-        'contraseña',
+        'contrasena',
         'remember_token',
     ];
 
+    // ✅ Si algún día usas casting automático de hash (no obligatorio)
     protected function casts(): array
     {
         return [
-            'contraseña' => 'hashed',
+            'contrasena' => 'hashed', // encriptar
         ];
+    }
+
+    // ✅ Asignacion de password a contraseña 
+    public function getAuthPassword()
+    {
+        return $this->contrasena;
     }
 
     public function role()
