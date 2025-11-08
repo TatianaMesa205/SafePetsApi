@@ -98,15 +98,49 @@ class AuthController extends Controller
 
     // ✅ Información del usuario autenticado
     public function me(Request $request)
-    {
-        $usuario = Auth::user();
+        {
+            $usuario = Auth::user();
 
-        $rol = $usuario->id_roles == 1 ? 'admin' : 'adoptante';
+            $rol = $usuario->id_roles == 1 ? 'admin' : 'adoptante';
+
+            return response()->json([
+                'success' => true,
+                'usuario' => $usuario,
+                'rol' => $rol
+            ], 200);
+        }
+
+    public function editarPerfil(Request $request)
+    {
+        $usuario = $request->user();
+
+        $validator = Validator::make($request->all(), [
+            'nombre_usuario' => 'required|string|max:255',
+            'password' => 'nullable|string|min:8',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Error de validación',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $usuario->nombre_usuario = $request->nombre_usuario;
+
+        if (!empty($request->password)) {
+            $usuario->contrasena = Hash::make($request->password); // 👈 usa "password" recibido
+        }
+
+        $usuario->save();
 
         return response()->json([
             'success' => true,
-            'usuario' => $usuario,
-            'rol' => $rol
-        ], 200);
+            'message' => 'Perfil actualizado correctamente',
+            'usuario' => $usuario
+        ]);
     }
+
+
+
 }

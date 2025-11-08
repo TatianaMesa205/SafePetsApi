@@ -23,7 +23,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('logout', [AuthController::class, 'logout']);
 
     // 🔹 Solo admin
-    Route::group(['middleware' => RoleMiddleware::class . ':admin'], function () {
+    Route::group(['middleware' => RoleMiddleware::class . ':1'], function () {
 
         Route::post('crearMascota', [MascotasController::class, 'store']);
         Route::put('actualizarMascota/{id}', [MascotasController::class, 'update']);
@@ -33,7 +33,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     });
 
     // 🔹 Admin o adoptante
-    Route::middleware([RoleMiddleware::class . ':admin,adoptante'])->group(function () {
+    Route::middleware([RoleMiddleware::class . ':1,2'])->group(function () {
         
 
         Route::get('listarCitas', [CitasController::class, 'index']);
@@ -50,6 +50,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::get('listarMascotas', [MascotasController::class, 'index']);
         Route::get('mascota/{id}', [MascotasController::class, 'show']);
+
+        Route::put('editarPerfil', [AuthController::class, 'editarPerfil']);
         
 
     });
@@ -62,50 +64,4 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
 
 
-
-
-
-
-// Route::get('listarCitas', [CitasController::class, 'index']);
-// Route::post('crearCitas', [CitasController::class, 'store']);
-// Route::get('citas/{id}', [CitasController::class, 'show']);
-// Route::put('actualizarCitas/{id}', [CitasController::class, 'update']);
-// Route::delete('eliminarCitas/{id}', [CitasController::class, 'destroy']);
-
-// Route::get('listarConsultorios', [ConsultoriosController::class, 'index']);
-// Route::post('crearConsultorios', [ConsultoriosController::class, 'store']);
-// Route::get('consultorios/{id}', [ConsultoriosController::class, 'show']);
-// Route::put('actualizarConsultorios/{id}', [ConsultoriosController::class, 'update']);
-// Route::delete('eliminarConsultorios/{id}', [ConsultoriosController::class, 'destroy']);
-
-// Route::get('listarEspecialidades', [EspecialidadesController::class, 'index']);
-// Route::post('crearEspecialidades', [EspecialidadesController::class, 'store']);
-// Route::get('especialidades/{id}', [EspecialidadesController::class, 'show']);
-// Route::put('actualizarEspecialidades/{id}', [EspecialidadesController::class, 'update']);
-// Route::delete('eliminarEspecialidades/{id}', [EspecialidadesController::class, 'destroy']);
-
-// Route::get('listarMedicos', [MedicosController::class, 'index']);
-// Route::post('crearMedicos', [MedicosController::class, 'store']);
-// Route::get('medicos/{id}', [MedicosController::class, 'show']);
-// Route::put('actualizarMedicos/{id}', [MedicosController::class, 'update']);
-// Route::delete('eliminarMedicos/{id}', [MedicosController::class, 'destroy']);
-
-// Route::get('listarPacientes', [PacientesController::class, 'index']);
-// Route::post('crearPacientes', [PacientesController::class, 'store']);
-// Route::get('pacientes/{id}', [PacientesController::class, 'show']);
-// Route::put('actualizarPacientes/{id}', [PacientesController::class, 'update']);
-// Route::delete('eliminarPacientes/{id}', [PacientesController::class, 'destroy']);
-
-// CONSULTAS ADICIONALES
-
-// Route::get('listarHotmail', [PacientesController::class, 'listarHotmail']);
-// Route::get('listar20Anios', [MedicosController::class, 'listar20Anios']);
-// Route::get('listarConsultoriosSegundoP', [ConsultoriosController::class, 'listarConsultoriosSegundoP']);
-// Route::get('listarMenores', [PacientesController::class, 'listarMenores']);
-// Route::get('listarCitasActivas', [CitasController::class, 'listarCitasActivas']);
-// Route::get('listarApellidosM', [PacientesController::class, 'listarApellidosM']);
-// Route::get('listarCitasGripa', [CitasController::class, 'listarCitasGripa']);
-// Route::get('listarMedicosCardiologia', [MedicosController::class, 'listarMedicosCardiologia']);
-// Route::get('listarPacientesBogota', [PacientesController::class, 'listarPacientesBogota']);
-// Route::get('listarCitasPacientes30', [CitasController::class, 'listarCitasPacientes30']);
 
