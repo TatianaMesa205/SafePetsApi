@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id('id_usuarios');
             $table->string('nombre_usuario');
             $table->string('email')->unique();
-            $table->string('contrasena');
+            $table->string('password');
 
             // Clave foránea hacia la tabla 'roles'
             $table->unsignedBigInteger('id_roles');

@@ -16,6 +16,8 @@ Route::get('/user', function (Request $request) {
 Route::post('registrar', [AuthController::class, 'registrar']);
 Route::post('login', [AuthController::class, 'login']);
 
+    Route::post('crearMascota', [MascotasController::class, 'store']);
+
 // 🔹 Middleware principal de Sanctum
 Route::group(['middleware' => ['auth:sanctum']], function () {
 
@@ -25,7 +27,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     // 🔹 Solo admin
     Route::group(['middleware' => RoleMiddleware::class . ':1'], function () {
 
-        Route::post('crearMascota', [MascotasController::class, 'store']);
+
         Route::put('actualizarMascota/{id}', [MascotasController::class, 'update']);
         Route::delete('eliminarMascota/{id}', [MascotasController::class, 'destroy']);
 

@@ -4,44 +4,36 @@ namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Laravel\Sanctum\HasApiTokens;
 
 class Usuarios extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, Notifiable;
 
     protected $table = 'usuarios';
     protected $primaryKey = 'id_usuarios';
+    public $timestamps = false; 
 
     protected $fillable = [
         'nombre_usuario',
         'email',
-        'contrasena',
+        'password',
         'id_roles',
     ];
 
     protected $hidden = [
-        'contrasena',
-        'remember_token',
+        'password',
     ];
 
-    // ✅ Si algún día usas casting automático de hash (no obligatorio)
-    protected function casts(): array
-    {
-        return [
-            'contrasena' => 'hashed', // encriptar
-        ];
-    }
-
-    // ✅ Asignacion de password a contraseña 
-    public function getAuthPassword()
-    {
-        return $this->contrasena;
-    }
-
+    // ✅ Relación con la tabla de roles
     public function role()
     {
         return $this->belongsTo(Roles::class, 'id_roles', 'id_roles');
+    }
+
+    // ✅ Indica a Laravel qué campo usar para la contraseña (opcional, pero seguro)
+    public function getAuthPassword()
+    {
+        return $this->password;
     }
 }

@@ -10,45 +10,50 @@ use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
-    // ✅ Registro de usuario
+
     public function registrar(Request $request)
     {
-        // Validar los campos
+        // ✅ Validar los campos
         $validator = Validator::make($request->all(), [
             'nombre_usuario' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:usuarios',
             'password' => 'required|string|min:6',
-            'id_roles' => 'required|integer'
+            'id_roles' => 'required|integer|in:1,2', // solo 1=admin, 2=adoptante
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'message' => 'Error de validación',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
-        // Crear el usuario
+        // ✅ Crear el usuario
         $usuario = Usuarios::create([
             'nombre_usuario' => $request->nombre_usuario,
             'email' => $request->email,
-            'contrasena' => Hash::make($request->password), // 🔒 Encripta la contraseña
-            'id_roles' => $request->id_roles
+            'password' => Hash::make($request->password), // 🔒 Encripta correctamente
+            'id_roles' => $request->id_roles,
         ]);
 
-        // Crear token
+        // ✅ Crear token de acceso
         $token = $usuario->createToken('auth_token')->plainTextToken;
 
-        // Determinar rol
+        // ✅ Determinar nombre del rol
         $rol = $usuario->id_roles == 1 ? 'admin' : 'adoptante';
 
-        // Respuesta
+        // ✅ Respuesta JSON
         return response()->json([
             'message' => 'Usuario registrado exitosamente',
             'rol' => $rol,
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'usuario' => $usuario
+            'usuario' => [
+                'id' => $usuario->id_usuarios,
+                'nombre_usuario' => $usuario->nombre_usuario,
+                'email' => $usuario->email,
+                'id_roles' => $usuario->id_roles,
+            ],
         ], 201);
     }
 
@@ -65,7 +70,7 @@ class AuthController extends Controller
         $usuario = Usuarios::where('email', $request->email)->first();
 
         // Verificar si existe y si la contraseña es correcta
-        if (!$usuario || !Hash::check($request->password, $usuario->contrasena)) {
+        if (!$usuario || !Hash::check($request->password, $usuario->password)) {
             return response()->json(['message' => 'Credenciales incorrectas'], 401);
         }
 
@@ -112,24 +117,28 @@ class AuthController extends Controller
 
     public function editarPerfil(Request $request)
     {
-        $usuario = $request->user();
+        $usuario = $request->user(); // Obtiene el usuario autenticado por Sanctum
 
+        // ✅ Validar datos
         $validator = Validator::make($request->all(), [
-            'nombre_usuario' => 'required|string|max:255',
-            'password' => 'nullable|string|min:8',
+            'nombre_usuario' => 'nullable|string|max:255',
+            'password' => 'nullable|string|min:6',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'message' => 'Error de validación',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
-        $usuario->nombre_usuario = $request->nombre_usuario;
+        // ✅ Actualizar solo los campos enviados
+        if ($request->filled('nombre_usuario')) {
+            $usuario->nombre_usuario = $request->nombre_usuario;
+        }
 
-        if (!empty($request->password)) {
-            $usuario->contrasena = Hash::make($request->password); // 👈 usa "password" recibido
+        if ($request->filled('password')) {
+            $usuario->password = Hash::make($request->password); // 🔒 Encripta correctamente
         }
 
         $usuario->save();
@@ -137,7 +146,12 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Perfil actualizado correctamente',
-            'usuario' => $usuario
+            'usuario' => [
+                'id_usuarios' => $usuario->id_usuarios,
+                'nombre_usuario' => $usuario->nombre_usuario,
+                'email' => $usuario->email,
+                'id_roles' => $usuario->id_roles,
+            ],
         ]);
     }
 
