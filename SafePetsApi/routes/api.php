@@ -4,6 +4,7 @@ use App\Http\Controllers\AdoptantesController;
 use App\Http\Controllers\CitasController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MascotasController;
+use App\Http\Controllers\VacunasController;
 use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -16,7 +17,7 @@ Route::get('/user', function (Request $request) {
 Route::post('registrar', [AuthController::class, 'registrar']);
 Route::post('login', [AuthController::class, 'login']);
 
-    Route::post('crearMascota', [MascotasController::class, 'store']);
+
 
 // 🔹 Middleware principal de Sanctum
 Route::group(['middleware' => ['auth:sanctum']], function () {
@@ -27,10 +28,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     // 🔹 Solo admin
     Route::group(['middleware' => RoleMiddleware::class . ':1'], function () {
 
-
-        Route::put('actualizarMascota/{id}', [MascotasController::class, 'update']);
-        Route::delete('eliminarMascota/{id}', [MascotasController::class, 'destroy']);
-
+        Route::post('crearMascota', [MascotasController::class, 'store']);
 
     });
 
@@ -52,6 +50,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::get('listarMascotas', [MascotasController::class, 'index']);
         Route::get('mascota/{id}', [MascotasController::class, 'show']);
+
+        Route::get('listarVacunas/{id_mascotas}', [VacunasController::class, 'index']);
 
         Route::put('editarPerfil', [AuthController::class, 'editarPerfil']);
         

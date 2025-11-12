@@ -9,10 +9,15 @@ use Illuminate\Support\Facades\Storage;
 
 class MascotasController extends Controller
 {
-    // 📋 Listar todas las mascotas
     public function index()
     {
-        $mascotas = Mascotas::all();
+        $mascotas = Mascotas::all()->map(function ($mascota) {
+            if ($mascota->imagen) {
+                $mascota->imagen = asset('storage/' . $mascota->imagen);
+            }
+            return $mascota;
+        });
+
         return response()->json($mascotas);
     }
 

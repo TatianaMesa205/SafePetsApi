@@ -17,7 +17,7 @@ return new class extends Migration
             // Claves foráneas
             $table->unsignedBigInteger('id_adoptantes');
             $table->unsignedBigInteger('id_mascotas');
-            $table->date('fecha_cita');
+            $table->datetime('fecha_cita');
             $table->enum('estado', ['Confirmada', 'Cancelada', 'Pendiente']);
             $table->text('motivo');
 
