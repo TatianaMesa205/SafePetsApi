@@ -13,10 +13,14 @@ return new class extends Migration
     {
         Schema::create('donaciones', function (Blueprint $table) {
             $table->id('id_donaciones'); // Llave primaria autoincremental
-            $table->unsignedBigInteger('id_usuarios');
-            $table->decimal('monto', 10, 2);
-            $table->date('fecha');
-            $table->enum('metodo_pago', ['Efectivo', 'Transferencia', 'Tarjeta']);
+            $table->unsignedBigInteger('id_usuarios')->nullable();
+
+            $table->string('codigo_referencia', 255)->nullable();
+            $table->decimal('monto', 10, 2)->nullable();
+            $table->enum('estado_pago', ['pendiente', 'aprobado', 'rechazado', 'fallido'])->default('pendiente');
+            $table->string('transaccion_id_externa', 255)->nullable();
+            $table->dateTime('fecha')->nullable();
+            $table->string('metodo_pago', 50)->nullable();
 
             // Clave foránea
             $table->foreign('id_usuarios')

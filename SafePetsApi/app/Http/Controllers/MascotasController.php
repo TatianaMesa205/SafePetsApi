@@ -9,11 +9,12 @@ use Illuminate\Support\Facades\Storage;
 
 class MascotasController extends Controller
 {
+
     public function index()
     {
         $mascotas = Mascotas::all()->map(function ($mascota) {
             if ($mascota->imagen) {
-                $mascota->imagen = asset('storage/' . $mascota->imagen);
+                $mascota->imagen = url('mascotas/' . $mascota->imagen);
             }
             return $mascota;
         });
@@ -47,7 +48,15 @@ class MascotasController extends Controller
         if ($request->hasFile('imagen')) {
             $imagen = $request->file('imagen');
             $nombreArchivo = time() . '_' . $imagen->getClientOriginalName();
-            $rutaImagen = $imagen->storeAs('mascotas', $nombreArchivo, 'public');
+            $rutaDestino = base_path('../../CarpetaCompartida/Mascotas');
+            $nombreArchivo = time() . '_' . $imagen->getClientOriginalName();
+
+            // Mover la imagen a la carpeta compartida
+            $imagen->move($rutaDestino, $nombreArchivo);
+
+            // Guardamos la ruta relativa (solo el nombre del archivo)
+            $rutaImagen = $nombreArchivo;
+
         }
 
         $mascota = Mascotas::create([
