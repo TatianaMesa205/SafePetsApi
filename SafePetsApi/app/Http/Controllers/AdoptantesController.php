@@ -57,6 +57,20 @@ class AdoptantesController extends Controller
         ], 201);
     }
 
+    public function obtenerAdoptante($email)
+    {
+        $adoptante = Adoptantes::where('email', $email)->first();
+
+        if (!$adoptante) {
+            return response()->json([
+                'message' => 'No existe un adoptante con este email'
+            ], 404);
+        }
+
+        return response()->json($adoptante, 200);
+    }
+
+
     public function verificar($email)
     {
         // Buscar si existe un registro en adoptantes con ese email

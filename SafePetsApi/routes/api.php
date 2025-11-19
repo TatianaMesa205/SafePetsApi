@@ -4,6 +4,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MascotasController;
 use App\Http\Controllers\VacunasController;
 use App\Http\Controllers\AdoptantesController;
+use App\Http\Controllers\CitasController;
+use App\Http\Controllers\PublicacionesController;
 use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -43,8 +45,14 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::get('verificarAdoptante/{email}', [AdoptantesController::class, 'verificar']);
         Route::post('registrarAdoptante', [AdoptantesController::class, 'store']);
-        
+        Route::get('obtenerAdoptante/{email}', [AdoptantesController::class, 'obtenerAdoptante']);
 
+        Route::post('solicitarCita', [CitasController::class, 'store']);
+        Route::get('validarCitaActiva/{email}', [CitasController::class, 'validarCitaActiva']);
+
+        Route::get('listarPublicaciones', [PublicacionesController::class, 'index']);
+        Route::post('crearPublicacion', [PublicacionesController::class, 'store']);
+        
     });
 });
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Citas;
+use App\Models\Adoptantes;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -22,7 +23,7 @@ class CitasController extends Controller
         $validador = Validator::make($request->all(), [
             'id_adoptantes' => 'required|exists:adoptantes,id_adoptantes',
             'id_mascotas' => 'required|exists:mascotas,id_mascotas',
-            'fecha_cita' => 'required|date|after_or_equal:today',
+            'fecha_cita' => 'required|date_format:Y-m-d H:i:s|after_or_equal:now',
             'estado' => 'nullable|string|in:Pendiente,Confirmada,Cancelada,Completada',
             'motivo' => 'required|string|max:255',
         ]);
@@ -57,47 +58,6 @@ class CitasController extends Controller
         return response()->json($cita);
     }
 
-    // ✏️ Actualizar una cita
-    public function update(Request $request, string $id)
-    {
-        $cita = Citas::find($id);
-
-        if (!$cita) {
-            return response()->json(['message' => 'Cita no encontrada'], 404);
-        }
-
-        $validador = Validator::make($request->all(), [
-            'fecha_cita' => 'date|after_or_equal:today',
-            'estado' => 'string|in:Pendiente,Confirmada,Cancelada,Completada',
-            'motivo' => 'string|max:255',
-        ]);
-
-        if ($validador->fails()) {
-            return response()->json($validador->errors(), 422);
-        }
-
-        $cita->update($request->all());
-
-        return response()->json([
-            'message' => 'Cita actualizada correctamente',
-            'data' => $cita
-        ]);
-    }
-
-    // 🗑️ Eliminar una cita
-    public function destroy(string $id)
-    {
-        $cita = Citas::find($id);
-
-        if (!$cita) {
-            return response()->json(['message' => 'Cita no encontrada'], 404);
-        }
-
-        $cita->delete();
-
-        return response()->json(['message' => 'Cita eliminada correctamente']);
-    }
-
     // 🔎 Citas por adoptante
     public function citasPorAdoptante($id_adoptantes)
     {
@@ -111,5 +71,30 @@ class CitasController extends Controller
 
         return response()->json($citas);
     }
+
+    public function validarCitaActiva($email)
+    {
+        // Buscar adoptante por email (MISMO ESTILO QUE obtenerAdoptante)
+        $adoptante = Adoptantes::where('email', $email)->first();
+
+        if (!$adoptante) {
+            return response()->json([
+                'existe' => false,
+                'cita_activa' => false
+            ], 404);
+        }
+
+        // Buscar si tiene citas Pendiente o Confirmada
+        $tieneCitaActiva = Citas::where('id_adoptantes', $adoptante->id_adoptantes)
+            ->whereIn('estado', ['Pendiente', 'Confirmada'])
+            ->exists();
+
+        return response()->json([
+            'existe' => true,
+            'cita_activa' => $tieneCitaActiva
+        ], 200);
+    }
+
+
 
 }

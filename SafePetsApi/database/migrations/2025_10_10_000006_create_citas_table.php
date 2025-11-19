@@ -18,7 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('id_adoptantes');
             $table->unsignedBigInteger('id_mascotas');
             $table->datetime('fecha_cita');
-            $table->enum('estado', ['Confirmada', 'Cancelada', 'Pendiente']);
+            $table->enum('estado', ['Confirmada', 'Cancelada', 'Pendiente', 'Completada']);
             $table->text('motivo');
 
             $table->foreign('id_adoptantes')->references('id_adoptantes')->on('adoptantes')->onDelete('cascade');
