@@ -60,27 +60,46 @@ class AuthController extends Controller
     // ✅ Inicio de sesión
     public function login(Request $request)
     {
-        // Validar campos obligatorios
-        $request->validate([
-            'email' => 'required|email',
+        // Validar formato del email y la contraseña
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email:rfc,dns',
             'password' => 'required|string',
+        ], [
+            'email.required' => 'Por favor ingresa un correo electrónico.',
+            'email.email' => 'El correo ingresado no tiene un formato válido.',
+            'password.required' => 'Por favor ingresa la contraseña.',
         ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => $validator->errors()->first()
+            ], 422);
+        }
 
         // Buscar usuario por email
         $usuario = Usuarios::where('email', $request->email)->first();
 
-        // Verificar si existe y si la contraseña es correcta
-        if (!$usuario || !Hash::check($request->password, $usuario->password)) {
-            return response()->json(['message' => 'Credenciales incorrectas'], 401);
+        // Verificar existencia del usuario
+        if (!$usuario) {
+            return response()->json([
+                'message' => 'El correo ingresado no está registrado.'
+            ], 404);
         }
 
-        // Crear token de acceso
+        // Verificar contraseña
+        if (!Hash::check($request->password, $usuario->password)) {
+            return response()->json([
+                'message' => 'La contraseña es incorrecta.'
+            ], 401);
+        }
+
+        // Crear token
         $token = $usuario->createToken('auth_token')->plainTextToken;
 
-        // Determinar rol
+        // Rol
         $rol = $usuario->id_roles == 1 ? 'admin' : 'adoptante';
 
-        // Respuesta con datos
+        // Respuesta
         return response()->json([
             'message' => 'Bienvenido ' . $usuario->nombre_usuario,
             'rol' => $rol,
@@ -89,6 +108,7 @@ class AuthController extends Controller
             'usuario' => $usuario
         ]);
     }
+
 
 
     // ✅ Cierre de sesión
