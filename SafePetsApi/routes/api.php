@@ -49,6 +49,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::post('solicitarCita', [CitasController::class, 'store']);
         Route::get('validarCitaActiva/{email}', [CitasController::class, 'validarCitaActiva']);
+        Route::get('historialCitasPorEmail/{email}', [CitasController::class, 'historialPorEmail']);
+        Route::put('citas/{id}/cancelar', [App\Http\Controllers\CitasController::class, 'cancelar']);
 
         Route::get('listarPublicaciones', [PublicacionesController::class, 'index']);
         Route::post('crearPublicacion', [PublicacionesController::class, 'store']);

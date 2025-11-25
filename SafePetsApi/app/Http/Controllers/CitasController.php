@@ -4,18 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Citas;
 use App\Models\Adoptantes;
+use App\Models\Usuarios;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\CitaCanceladaMail;
 
 class CitasController extends Controller
 {
-    // 📋 Listar todas las citas
-    public function index()
-    {
-        $citas = Citas::with(['adoptante', 'mascota'])->get();
-
-        return response()->json($citas);
-    }
 
     // ➕ Crear una nueva cita
     public function store(Request $request)
@@ -44,18 +40,6 @@ class CitasController extends Controller
             'message' => 'Cita registrada exitosamente',
             'data' => $cita
         ], 201);
-    }
-
-    // 🔍 Mostrar una cita específica
-    public function show(string $id)
-    {
-        $cita = Citas::with(['adoptante', 'mascota'])->find($id);
-
-        if (!$cita) {
-            return response()->json(['message' => 'Cita no encontrada'], 404);
-        }
-
-        return response()->json($cita);
     }
 
     // 🔎 Citas por adoptante
@@ -95,6 +79,54 @@ class CitasController extends Controller
         ], 200);
     }
 
+    public function historialPorEmail($email)
+    {
+        // Buscar adoptante
+        $adoptante = Adoptantes::where('email', $email)->first();
+
+        if (!$adoptante) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No existe un adoptante con este email'
+            ], 404);
+        }
+
+        // Obtener citas relacionadas (incluir nombre de mascota)
+        $citas = Citas::where('id_adoptantes', $adoptante->id_adoptantes)
+                    ->with(['mascota:id_mascotas,nombre'])
+                    ->orderBy('fecha_cita', 'desc')
+                    ->get();
+
+        return response()->json([
+            'success' => true,
+            'adoptante' => $adoptante,
+            'citas' => $citas
+        ], 200);
+    }
+
+    public function cancelar(Request $request, $id)
+    {
+        // Buscar la cita por su id
+        $cita = Citas::where('id_citas', $id)->first();
+
+        if (!$cita) {
+            return response()->json(['message' => 'Cita no encontrada.'], 404);
+        }
+
+        // Cambiar estado a Cancelada
+        $cita->estado = 'Cancelada';
+        $cita->save();
+
+        // Obtener correos de administradores
+        $adminEmails = Usuarios::where('id_roles', 1)->pluck('email')->toArray();
+
+        // Enviar correo al admin
+        if (!empty($adminEmails)) {
+            Mail::to($adminEmails)->send(new CitaCanceladaMail($cita));
+        }
+
+        return response()->json(['message' => 'Cita cancelada correctamente.'], 200);
+    }
 
 
 }
