@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Usuarios;
+use App\Models\Adoptantes;
 use Illuminate\Http\Request;
 
 class AuthController extends Controller
@@ -117,7 +118,7 @@ class AuthController extends Controller
         auth()->user()->tokens()->delete();
 
         return response()->json([
-            'message' => 'Has cerrado sesión correctamente y el token fue eliminado'
+            'message' => 'Has cerrado sesión correctamente'
         ]);
     }
 
@@ -174,4 +175,30 @@ class AuthController extends Controller
             ],
         ]);
     }
+
+    public function actualizarPerfilCompleto(Request $request)
+    {
+        $user = auth()->user();
+
+        // Actualizar tabla usuarios
+        $user->nombre_usuario = $request->nombre_usuario;
+        $user->save();
+
+        // Actualizar tabla adoptantes
+        $adoptante = Adoptantes::where('email', $user->email)->first();
+
+        if ($adoptante) {
+            $adoptante->nombre_completo = $request->nombre_completo;
+            $adoptante->cedula = $request->cedula;
+            $adoptante->telefono = $request->telefono;
+            $adoptante->direccion = $request->direccion;
+            $adoptante->save();
+        }
+
+        return response()->json([
+            "success" => true,
+            "message" => "Perfil actualizado correctamente"
+        ]);
+    }
+
 }

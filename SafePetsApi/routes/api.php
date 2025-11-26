@@ -42,10 +42,13 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('listarVacunas/{id_mascotas}', [VacunasController::class, 'index']);
 
         Route::put('editarPerfil', [AuthController::class, 'editarPerfil']);
+        Route::put('actualizarPerfilCompleto', [AuthController::class, 'actualizarPerfilCompleto']);
 
         Route::get('verificarAdoptante/{email}', [AdoptantesController::class, 'verificar']);
         Route::post('registrarAdoptante', [AdoptantesController::class, 'store']);
         Route::get('obtenerAdoptante/{email}', [AdoptantesController::class, 'obtenerAdoptante']);
+        Route::get('adoptanteInfo/{email}', [AdoptantesController::class, 'adoptanteInfo']);
+
 
         Route::post('solicitarCita', [CitasController::class, 'store']);
         Route::get('validarCitaActiva/{email}', [CitasController::class, 'validarCitaActiva']);

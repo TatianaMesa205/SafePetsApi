@@ -78,4 +78,24 @@ class AdoptantesController extends Controller
 
         return response()->json($existe, 200);
     }
+
+    public function adoptanteInfo($email)
+    {
+        $adoptante = Adoptantes::where('email', $email)->first();
+
+        if (!$adoptante) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No existe un adoptante con este email'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'adoptante' => $adoptante
+        ], 200);
+    }
+
+
+
 }
