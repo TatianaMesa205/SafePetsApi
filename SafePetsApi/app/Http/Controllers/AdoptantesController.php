@@ -95,7 +95,4 @@ class AdoptantesController extends Controller
             'adoptante' => $adoptante
         ], 200);
     }
-
-
-
 }
