@@ -14,17 +14,33 @@ class AuthController extends Controller
 
     public function registrar(Request $request)
     {
-        // ✅ Validar los campos
-        $validator = Validator::make($request->all(), [
-            'nombre_usuario' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:usuarios',
-            'password' => 'required|string|min:6',
-            'id_roles' => 'required|integer|in:1,2', // solo 1=admin, 2=adoptante
-        ]);
+        // ✅ Validar los campos con reglas y mensajes personalizados
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'nombre_usuario' => [
+                    'required',
+                    'string',
+                    'max:255',
+                    'unique:usuarios,nombre_usuario', // validar que no exista
+                    'regex:/^\S+$/', // no permitir espacios
+                ],
+                'email' => 'required|string|email|max:255|unique:usuarios',
+                'password' => 'required|string|min:6',
+                'id_roles' => 'required|integer|in:1,2',
+            ],
+            [
+                // 📌 Mensajes personalizados
+                'nombre_usuario.unique' => 'Este nombre de usuario ya está en uso',
+                'nombre_usuario.regex' => 'El nombre de usuario no puede contener espacios',
+                'email.unique' => 'El email no debe estar previamente registrado',
+            ]
+        );
 
+        // ✋ Si falla la validación
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Error de validación',
+                'message' => 'Error en los datos enviados',
                 'errors' => $validator->errors(),
             ], 422);
         }
@@ -33,20 +49,16 @@ class AuthController extends Controller
         $usuario = Usuarios::create([
             'nombre_usuario' => $request->nombre_usuario,
             'email' => $request->email,
-            'password' => Hash::make($request->password), // 🔒 Encripta correctamente
+            'password' => Hash::make($request->password),
             'id_roles' => $request->id_roles,
         ]);
 
-        // ✅ Crear token de acceso
+        // Crear token
         $token = $usuario->createToken('auth_token')->plainTextToken;
 
-        // ✅ Determinar nombre del rol
-        $rol = $usuario->id_roles == 1 ? 'admin' : 'adoptante';
-
-        // ✅ Respuesta JSON
         return response()->json([
             'message' => 'Usuario registrado exitosamente',
-            'rol' => $rol,
+            'rol' => $usuario->id_roles == 1 ? 'admin' : 'adoptante',
             'access_token' => $token,
             'token_type' => 'Bearer',
             'usuario' => [
@@ -58,16 +70,16 @@ class AuthController extends Controller
         ], 201);
     }
 
-    // ✅ Inicio de sesión
+
+    // ✅ Inicio de sesión con email O nombre_usuario
     public function login(Request $request)
     {
-        // Validar formato del email y la contraseña
+        // Validar que el campo identificador venga lleno
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email:rfc,dns',
+            'identificador' => 'required|string',
             'password' => 'required|string',
         ], [
-            'email.required' => 'Por favor ingresa un correo electrónico.',
-            'email.email' => 'El correo ingresado no tiene un formato válido.',
+            'identificador.required' => 'Por favor ingresa tu correo o nombre de usuario.',
             'password.required' => 'Por favor ingresa la contraseña.',
         ]);
 
@@ -77,13 +89,17 @@ class AuthController extends Controller
             ], 422);
         }
 
-        // Buscar usuario por email
-        $usuario = Usuarios::where('email', $request->email)->first();
+        $identificador = $request->identificador;
+
+        // 📌 Buscar por email O nombre_usuario
+        $usuario = Usuarios::where('email', $identificador)
+                    ->orWhere('nombre_usuario', $identificador)
+                    ->first();
 
         // Verificar existencia del usuario
         if (!$usuario) {
             return response()->json([
-                'message' => 'El correo ingresado no está registrado.'
+                'message' => 'El usuario no está registrado.'
             ], 404);
         }
 
@@ -109,6 +125,7 @@ class AuthController extends Controller
             'usuario' => $usuario
         ]);
     }
+
 
 
 

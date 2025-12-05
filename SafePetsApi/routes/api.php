@@ -16,6 +16,7 @@ Route::get('/user', function (Request $request) {
 
 Route::post('registrar', [AuthController::class, 'registrar']);
 Route::post('login', [AuthController::class, 'login']);
+Route::post('registrarAdoptante', [AdoptantesController::class, 'store']);
 
 
 
@@ -45,7 +46,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::put('actualizarPerfilCompleto', [AuthController::class, 'actualizarPerfilCompleto']);
 
         Route::get('verificarAdoptante/{email}', [AdoptantesController::class, 'verificar']);
-        Route::post('registrarAdoptante', [AdoptantesController::class, 'store']);
         Route::get('obtenerAdoptante/{email}', [AdoptantesController::class, 'obtenerAdoptante']);
         Route::get('adoptanteInfo/{email}', [AdoptantesController::class, 'adoptanteInfo']);
 

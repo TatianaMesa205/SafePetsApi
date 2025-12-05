@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\CitaCanceladaMail;
+use Carbon\Carbon;
+
 
 class CitasController extends Controller
 {
@@ -58,7 +60,6 @@ class CitasController extends Controller
 
     public function validarCitaActiva($email)
     {
-        // Buscar adoptante por email (MISMO ESTILO QUE obtenerAdoptante)
         $adoptante = Adoptantes::where('email', $email)->first();
 
         if (!$adoptante) {
@@ -68,14 +69,43 @@ class CitasController extends Controller
             ], 404);
         }
 
-        // Buscar si tiene citas Pendiente o Confirmada
-        $tieneCitaActiva = Citas::where('id_adoptantes', $adoptante->id_adoptantes)
-            ->whereIn('estado', ['Pendiente', 'Confirmada'])
-            ->exists();
+        // Obtener citas del adoptante
+        $citas = Citas::where('id_adoptantes', $adoptante->id_adoptantes)->get();
 
+        if ($citas->isEmpty()) {
+            return response()->json([
+                'existe' => true,
+                'cita_activa' => false
+            ], 200);
+        }
+
+        $ahora = Carbon::now();
+
+        foreach ($citas as $cita) {
+
+            // Convertir fecha y hora
+            $fechaCita = Carbon::parse($cita->fecha_cita);
+
+            // ❌ BLOQUEAR solo si:
+            // - estado es Pendiente o Confirmada
+            // - fecha/hora de la cita está en el FUTURO
+            if (
+                in_array($cita->estado, ['Pendiente', 'Confirmada']) &&
+                $fechaCita->isFuture()
+            ) {
+                return response()->json([
+                    'existe' => true,
+                    'cita_activa' => true,
+                    'estado' => $cita->estado,
+                    'fecha_cita' => $cita->fecha_cita
+                ], 200);
+            }
+        }
+
+        // ✔ Si llegó aquí → ninguna cita bloquea
         return response()->json([
             'existe' => true,
-            'cita_activa' => $tieneCitaActiva
+            'cita_activa' => false
         ], 200);
     }
 
